@@ -1,0 +1,5 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {poseAt,DURATIONS,CONTACT} from '../motion.js';
+test('each move interpolates through distinct preparation, contact, and recovery poses',()=>{for(const id of Object.keys(DURATIONS)){const h={pose:id,poseTime:DURATIONS[id],comboPose:0};const start=poseAt(h);const contact=CONTACT[id]||.12;const ready=poseAt({...h,poseTime:DURATIONS[id]-contact*.65});const hit=poseAt({...h,poseTime:DURATIONS[id]-contact});assert.notDeepEqual(ready,start,id+' windup');assert.notDeepEqual(hit,ready,id+' strike');for(let t=0;t<DURATIONS[id];t+=.005){const p=poseAt({...h,poseTime:DURATIONS[id]-t});for(const v of Object.values(p))assert.ok((Array.isArray(v)?v:[v]).every(Number.isFinite));}assert.deepEqual(poseAt({...h,poseTime:0}).head,start.head);}});
+test('walk cycle always keeps a foot on the ground',()=>{for(let stride=0;stride<Math.PI*4;stride+=.02){const p=poseAt({motion:100,stride});assert.ok(p.leftFoot[1]===0||p.rightFoot[1]===0);assert.ok(p.leftFoot[1]<=0&&p.rightFoot[1]<=0);}});

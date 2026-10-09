@@ -2,3 +2,6 @@
 /* Keep the complete arena visible without stretching characters. */
 @media(max-width:600px){.arena canvas{object-fit:contain}}
 @media(max-height:500px) and (orientation:landscape){.arena{max-height:calc(100dvh - 230px);min-height:140px}canvas{height:calc(100dvh - 230px);max-height:calc(100dvh - 230px);object-fit:contain}.brand{font-size:15px}.skill small{margin-top:1px}.gauge{margin-bottom:2px}}
+
+/* Canvas backing dimensions follow the viewport: wide screens keep full-size actors. */
+.arena canvas{object-fit:fill}

@@ -1,7 +1,7 @@
 import {DURATIONS,CONTACT} from './motion.js';
 export const CONFIG = {
-  maxHp:100, heal:20, heroSpeed:100, dodgeCooldown:2.4,
-  skills:{punch:{name:'連続格闘',icon:'✊',cooldown:.55,damage:13},upper:{name:'アッパー',icon:'↑',cooldown:3,damage:25},gun:{name:'空中銃撃',icon:'✦',cooldown:1.2,damage:22},spin:{name:'回転蹴り',icon:'↻',cooldown:3.2,damage:24},hammer:{name:'巨大ハンマー',icon:'🔨',cooldown:0,damage:60}},
+  maxHp:100, heal:20, heroSpeed:170, dodgeCooldown:2.4,
+  skills:{punch:{name:'連続格闘',icon:'✊',cooldown:.30,damage:13},upper:{name:'アッパー',icon:'↑',cooldown:2.4,damage:25},gun:{name:'空中銃撃',icon:'✦',cooldown:.85,damage:22},spin:{name:'回転蹴り',icon:'↻',cooldown:2.6,damage:24},hammer:{name:'巨大ハンマー',icon:'🔨',cooldown:0,damage:60}},
   enemies:{slime:{name:'スライム',hp:32,damage:4,speed:30,color:'#8de4bc',size:24},goblin:{name:'ゴブリン',hp:46,damage:6,speed:43,color:'#b5dc77',size:29},boar:{name:'森の猪',hp:65,damage:9,speed:52,color:'#ba8c73',size:31},golem:{name:'ゴーレム',hp:210,damage:16,speed:22,color:'#9eabbc',size:49}},
   waves:[['slime','slime','goblin','slime','goblin'],['slime','goblin','boar','slime','goblin','boar'],['golem','goblin','slime','boar','slime']]
 };
@@ -14,7 +14,7 @@ export class Game {
  choose(index){if(this.run.phase!=='upgrade')return false;const c=this.run.choices[index];if(!c)return false;this.run.skills[c.id]=(this.run.skills[c.id]||0)+1;this.run.phase='battle';this.run.choices=[];this.begin();return true;}
  finish(){if(this.run.phase!=='battle')return;if(this.run.hp<=0){this.run.hp=0;this.run.phase='defeat';this.emit('defeat');return;}if(this.enemies.every(e=>e.dead)){if(this.run.wave===2){this.run.phase='clear';this.emit('clear');}else{this.run.hp=Math.min(CONFIG.maxHp,this.run.hp+CONFIG.heal);this.run.wave++;this.run.phase='upgrade';this.run.choices=this.choices();this.emit('win');}}}
  attack(id,targets){if(this.pending||this.hero.poseTime>0)return false;this.cooldowns[id]=CONFIG.skills[id].cooldown;this.hero.pose=id;this.hero.poseTime=DURATIONS[id];this.hero.comboPose=this.combo%3;this.pending={id,targets:[...targets],remaining:CONTACT[id],face:this.hero.face,combo:this.combo%3};this.emit('prepare',{id});return true;}
- impact(action){const {id,targets,face,combo}=action,skill=CONFIG.skills[id],level=this.run.skills[id];const range={punch:83,upper:95,spin:120,hammer:210,gun:280}[id];const hits=targets.filter(e=>!e.dead&&Math.abs(e.x-this.hero.x)<range&&(id!=='gun'||e.y>5));
+ impact(action){const {id,targets,face,combo}=action,skill=CONFIG.skills[id],level=this.run.skills[id];if(['punch','upper'].includes(id)){const nearest=targets.find(e=>!e.dead);if(nearest){const gap=Math.abs(nearest.x-this.hero.x);this.hero.x=Math.max(50,Math.min(650,this.hero.x+face*Math.min(12,Math.max(0,gap-35))));this.hero.renderX=this.hero.x;}}const range={punch:83,upper:95,spin:120,hammer:210,gun:280}[id];const hits=targets.filter(e=>!e.dead&&Math.abs(e.x-this.hero.x)<range&&(id!=='gun'||e.y>5));
  this.emit('attack',{id,x:this.hero.x,face});
  for(const e of hits){const damage=Math.round(skill.damage*(1+(level-1)*.4)*(id==='punch'&&combo===2?1.5:1));e.hp-=damage;e.hurt=e.type==='golem'?.13:.3;const force=id==='hammer'?300:id==='spin'||combo===2?180:100;e.vx=face*force*(e.type==='golem'?.28:1);if(id==='upper'&&e.type!=='golem')e.vy=240;else if((id==='hammer'||id==='spin')&&e.type!=='golem')e.vy=110;
  if(e.hp<=0){e.dead=true;e.deathTime=.65;if(e.type!=='golem')e.vy=Math.max(e.vy,130);this.emit('kill',{x:e.x,color:e.color});}

@@ -1,6 +1,6 @@
 // Time-based keyframes: preparation -> contact -> follow-through -> guard.
-export const DURATIONS={punch:.42,upper:.5,spin:.56,hammer:.78,gun:.32,dodge:.34};
-export const CONTACT={punch:.12,upper:.18,spin:.2,hammer:.32,gun:.1};
+export const DURATIONS={punch:.27,upper:.32,spin:.36,hammer:.52,gun:.22,dodge:.22};
+export const CONTACT={punch:.065,upper:.11,spin:.13,hammer:.22,gun:.06};
 const mix=(a,b,t)=>a+(b-a)*t;
 const smooth=t=>t*t*(3-2*t);
 const guard={hip:[0,-25],chest:[2,-47],head:[2,-68],leftHand:[-11,-45],rightHand:[17,-49],leftFoot:[-14,0],rightFoot:[17,0],turn:1,hammerAngle:-1.7};
@@ -22,7 +22,7 @@ export function poseAt(h){
  // Feet travel backwards on the ground; the returning foot lifts in an arc.
  for(const [key,offset] of [['leftFoot',0],['rightFoot',Math.PI]]){const phase=((stride+offset)%(2*Math.PI)+2*Math.PI)%(2*Math.PI),stance=phase<Math.PI;const u=stance?phase/Math.PI:(phase-Math.PI)/Math.PI;p[key]=[mix(stance?15:-15,stance?-15:15,u)*walk+(key==='leftFoot'?-14:17)*(1-walk),stance?0:-Math.sin(u*Math.PI)*11*walk];}
  p.hip=[0,-25+Math.cos(stride*2)*1.5*walk];p.chest=[2+2*walk,-47+Math.cos(stride*2)*walk];p.head=[2+3*walk,-68+Math.cos(stride*2)*.7*walk];p.leftHand=[-11-Math.sin(stride)*9*walk,-45];p.rightHand=[17+Math.sin(stride)*9*walk,-49];
- if(h.poseTime>0){const id=h.pose,d=DURATIONS[id],elapsed=d-h.poseTime,contact=id==='dodge'?.12:CONTACT[id];const f=frames[id==='punch'?['jab','cross','kick'][h.comboPose||0]:id];if(f){const keys=[{time:0,pose:guard},{time:contact*.65,pose:complete(f[0])},{time:contact,pose:complete(f[1])},{time:contact+(d-contact)*.35,pose:complete(f[2])},{time:d,pose:guard}];let n=1;while(n<keys.length-1&&elapsed>keys[n].time)n++;const a=keys[n-1],b=keys[n];p=blend(a.pose,b.pose,smooth(Math.max(0,Math.min(1,(elapsed-a.time)/(b.time-a.time)))));}}
+ if(h.poseTime>0){const id=h.pose,d=DURATIONS[id],elapsed=d-h.poseTime,contact=id==='dodge'?.08:CONTACT[id];const f=frames[id==='punch'?['jab','cross','kick'][h.comboPose||0]:id];if(f){const keys=[{time:0,pose:guard},{time:contact*.65,pose:complete(f[0])},{time:contact,pose:complete(f[1])},{time:contact+(d-contact)*.35,pose:complete(f[2])},{time:d,pose:guard}];let n=1;while(n<keys.length-1&&elapsed>keys[n].time)n++;const a=keys[n-1],b=keys[n];p=blend(a.pose,b.pose,smooth(Math.max(0,Math.min(1,(elapsed-a.time)/(b.time-a.time)))));}}
  if(h.hurt>0){p.chest[0]-=h.hurt*35;p.head[0]-=h.hurt*45;}
  return p;
 }
